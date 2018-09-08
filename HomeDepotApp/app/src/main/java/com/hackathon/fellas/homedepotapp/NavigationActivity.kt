@@ -10,16 +10,22 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
 import android.os.Bundle
+import android.speech.tts.TextToSpeech
 import android.support.annotation.RequiresApi
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import kotlinx.android.synthetic.main.activity_navigation.*
 import java.lang.Math.abs
+import java.util.*
 
 
-class NavigationActivity : AppCompatActivity(), SensorEventListener {
+class NavigationActivity : AppCompatActivity(), SensorEventListener, TextToSpeech.OnInitListener {
+    override fun onInit(p0: Int) {}
+
     var stepsAtChange = 0
     var steps = 0
+
+    lateinit var textToSpeech: TextToSpeech
 
     override fun onSensorChanged(event: SensorEvent?) {
         if (event != null) {
@@ -49,7 +55,10 @@ class NavigationActivity : AppCompatActivity(), SensorEventListener {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        textToSpeech = TextToSpeech(this, this)
         setContentView(R.layout.activity_navigation)
+
+        textToSpeech.setLanguage(Locale.CHINA)
 
         navigator.startNavigation()
         val stepCounter = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
@@ -83,6 +92,7 @@ class NavigationActivity : AppCompatActivity(), SensorEventListener {
                 direction = Direction.RIGHT
             }
         }
+        textToSpeech.speak(inst, TextToSpeech.QUEUE_ADD, null)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
