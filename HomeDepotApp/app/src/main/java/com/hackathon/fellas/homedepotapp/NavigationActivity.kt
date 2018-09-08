@@ -2,8 +2,13 @@ package com.hackathon.fellas.homedepotapp
 
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.os.Build
 import android.os.Bundle
 import android.support.annotation.RequiresApi
@@ -16,14 +21,38 @@ import android.widget.ImageView
 import kotlinx.android.synthetic.main.activity_navigation.*
 import kotlinx.android.synthetic.main.activity_navigation.returnHomeButton
 import java.lang.Math.abs
+import java.util.*
 
 
-class NavigationActivity : AppCompatActivity() {
+class NavigationActivity : AppCompatActivity(), SensorEventListener {
+    var stepsAtChange = 0
+    var steps = 0
+
+    override fun onSensorChanged(event: SensorEvent?) {
+        if (event != null) {
+            Log.v("STEPS", event.values[0].toString() + " " + stepsAtChange)
+            steps = event.values[0].toInt()
+            if (direction != Direction.FORWARD) {
+                val stepsChange = steps - stepsAtChange
+                if (stepsChange > 2) {
+                    direction = Direction.FORWARD
+                    arrowImageView?.setImageResource(R.drawable.arrow_forward)
+                }
+            }
+        }
+    }
+
+    override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
+        // Empty
+    }
+
     private var direction: Direction? = null
 
     enum class Direction {
         RIGHT, LEFT, FORWARD
     }
+
+    private val sensorManager: SensorManager by lazy { (getSystemService(Context.SENSOR_SERVICE) as SensorManager?)!! }
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,6 +65,8 @@ class NavigationActivity : AppCompatActivity() {
         }
 
         navigator.startNavigation()
+        val stepCounter = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+        sensorManager.registerListener(this, stepCounter, SensorManager.SENSOR_DELAY_NORMAL)
 
         if (checkSelfPermission(Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             startBluetoothScan()
@@ -44,7 +75,7 @@ class NavigationActivity : AppCompatActivity() {
             Log.e("PERMS", "Permission not granted for bluetooth")
         }
     }
-    
+
     fun onButtonPressed(view: View) {
         var button = view as? Button
         Log.i("button text", button?.getText().toString())
@@ -59,12 +90,15 @@ class NavigationActivity : AppCompatActivity() {
                 arrowImageView?.setImageResource(R.drawable.arrow_forward)
             } else if (degrees > 0) {
                 arrowImageView?.setImageResource(R.drawable.arrow_left)
+                stepsAtChange = steps
+                direction = Direction.LEFT
             } else if (degrees < 0) {
                 arrowImageView?.setImageResource(R.drawable.arrow_right)
+                stepsAtChange = steps
+                direction = Direction.RIGHT
             }
         }
     }
-
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun startBluetoothScan() {
