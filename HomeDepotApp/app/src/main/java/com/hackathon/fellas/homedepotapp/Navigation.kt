@@ -7,7 +7,7 @@ import java.lang.Math.sqrt
 import java.util.*
 import kotlin.collections.ArrayList
 
-class NavigationMap(private val instructionsCallback: (String) -> Unit) {
+class NavigationMap(private val instructionsCallback: (String, Double?) -> Unit) {
     class Signal(var strength: Int, var timestamp: Long, var signalFilt: Double, var inRangeCount: Int = 0)
 
     val nodes = arrayListOf(
@@ -127,8 +127,8 @@ class NavigationMap(private val instructionsCallback: (String) -> Unit) {
     fun startNavigation() {
         pathIdx = 0
         val distance = sqrt(Math.pow(nodes[pathIdx + 1].x - nodes[pathIdx].x, 2.0) + Math.pow(nodes[pathIdx + 1].y - nodes[pathIdx].y, 2.0))
-        queuedNavigationInstructions.addFirst("Proceed $distance to the first waypoint")
-        instructionsCallback("Proceed $distance to the first waypoint")
+        queuedNavigationInstructions.addFirst("Find the first waypoint")
+        instructionsCallback("Find the first waypoint", null)
     }
 
     fun nextNavigationInstruction() {
@@ -149,12 +149,12 @@ class NavigationMap(private val instructionsCallback: (String) -> Unit) {
                 else -> "Continue straight for $distance meters"
             }
             queuedNavigationInstructions.addFirst(directions)
-            instructionsCallback(directions)
+            instructionsCallback(directions, angleDiff)
             pathIdx++
         } else {
             pathIdx = 0
             queuedNavigationInstructions.addFirst("You have arrived at your destination.")
-            instructionsCallback("You have arrived at your destination")
+            instructionsCallback("You have arrived at your destination", null)
             return
         }
     }

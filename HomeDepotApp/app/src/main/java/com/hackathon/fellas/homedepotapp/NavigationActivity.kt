@@ -15,6 +15,7 @@ import android.widget.Button
 import android.widget.ImageView
 import kotlinx.android.synthetic.main.activity_navigation.*
 import kotlinx.android.synthetic.main.activity_navigation.returnHomeButton
+import java.lang.Math.abs
 
 
 class NavigationActivity : AppCompatActivity() {
@@ -34,8 +35,6 @@ class NavigationActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-//        arrowImageView.setImageResource(R.drawable.arrow_forward)
-
         navigator.startNavigation()
 
         if (checkSelfPermission(Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -45,28 +44,25 @@ class NavigationActivity : AppCompatActivity() {
             Log.e("PERMS", "Permission not granted for bluetooth")
         }
     }
-
-    fun changeDirection(direction: Direction) {
-        this.direction = direction
-    }
-
+    
     fun onButtonPressed(view: View) {
         var button = view as? Button
-        val text = button?.getText().toString().toLowerCase()
-//        if (text == "forward") {
-//            arrowImageView?.setImageResource(R.drawable.arrow_forward)
-//        } else if (text == "left") {
-//            arrowImageView?.setImageResource(R.drawable.arrow_left)
-//        } else if (text == "right") {
-//            arrowImageView?.setImageResource(R.drawable.arrow_right)
-//        }
         Log.i("button text", button?.getText().toString())
     }
 
     private lateinit var bluetoothAdapter: BluetoothAdapter
 
-    private var navigator = NavigationMap { inst ->
+    private var navigator = NavigationMap { inst, degrees ->
         instructions.text = inst
+        if (degrees != null) {
+            if (abs(degrees) <= 15) {
+                arrowImageView?.setImageResource(R.drawable.arrow_forward)
+            } else if (degrees > 0) {
+                arrowImageView?.setImageResource(R.drawable.arrow_left)
+            } else if (degrees < 0) {
+                arrowImageView?.setImageResource(R.drawable.arrow_right)
+            }
+        }
     }
 
 
