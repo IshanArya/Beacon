@@ -8,6 +8,7 @@ import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.ListView
 import android.widget.Toast
+import android.content.Intent
 
 class SearchActivity : AppCompatActivity(), TextWatcher {
 
@@ -29,11 +30,11 @@ class SearchActivity : AppCompatActivity(), TextWatcher {
 
         searchResults.setOnItemClickListener{parent, view, position, id ->
             var itemKey: String = searchResults.getItemAtPosition(position) as String
-            Toast.makeText(this, SharedData.tools[itemKey]?.item, Toast.LENGTH_SHORT).show()
-//            val intent: Intent = Intent(this, NavigationActivity::class.java).apply {
-//                putExtra("Node", SharedData.tools[itemKey])
-//            }
-//            startActivity(intent)
+//            Toast.makeText(this, SharedData.tools[itemKey]?.item, Toast.LENGTH_SHORT).show()
+            val intent: Intent = Intent(this, NavigationActivity::class.java).apply {
+                putExtra("Node", SharedData.tools[itemKey])
+            }
+            startActivity(intent)
         }
     }
 

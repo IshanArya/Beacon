@@ -1,5 +1,6 @@
 package com.hackathon.fellas.homedepotapp
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.widget.ArrayAdapter
@@ -32,11 +33,11 @@ class MyListActivity : AppCompatActivity() {
 
         myList.setOnItemClickListener{parent, view, position, id ->
             var itemKey: String = myList.getItemAtPosition(position) as String
-            Toast.makeText(this, SharedData.tools[itemKey]?.item, Toast.LENGTH_SHORT).show()
-//            val intent: Intent = Intent(this, NavigationActivity::class.java).apply {
-//                putExtra("Node", SharedData.tools[itemKey])
-//            }
-//            startActivity(intent)
+//            Toast.makeText(this, SharedData.tools[itemKey]?.item, Toast.LENGTH_SHORT).show()
+            val intent: Intent = Intent(this, NavigationActivity::class.java).apply {
+                putExtra("Node", SharedData.tools[itemKey])
+            }
+            startActivity(intent)
         }
 
     }

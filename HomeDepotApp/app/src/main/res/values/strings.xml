@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">Home Depot App</string>
     <string name="my_list_underlined"><u>My List</u></string>
+    <string name="right">Right</string>
+    <string name="home">Home</string>
+    <string name="left">Left</string>
+    <string name="forward">Forward</string>
+    <string name="imageContent">TODO</string>
 </resources>
