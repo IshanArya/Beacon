@@ -19,6 +19,7 @@
         <activity android:name=".HelpActivity" />
         <activity android:name=".SearchActivity" />
         <activity android:name=".NavigationActivity" />
+        <activity android:name=".ListActivity" />
     </application>
 
 </manifest>
