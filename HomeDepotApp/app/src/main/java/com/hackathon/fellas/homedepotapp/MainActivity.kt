@@ -4,7 +4,6 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import kotlinx.android.synthetic.main.activity_main.*
 import android.content.Intent
-import android.util.Log
 
 class MainActivity : AppCompatActivity() {
 
@@ -24,9 +23,7 @@ class MainActivity : AppCompatActivity() {
 
         directionButton.setOnClickListener {
             val intent = Intent(this, NavigationActivity::class.java)
-            Log.i("Before", "Before start")
             startActivity(intent)
-            Log.i("After", "After start")
         }
 
     }
