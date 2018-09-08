@@ -4,15 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    tools:context=".ListActivity">
+    tools:context=".HelpActivity">
 
     <Button
-        android:id="@+id/navigateButton"
+        android:id="@+id/returnHomeButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_marginStart="135dp"
-        android:layout_marginTop="220dp"
-        android:text="Navigate" />
+        android:layout_marginStart="149dp"
+        android:layout_marginTop="187dp"
+        android:text="Back" />
 </RelativeLayout>

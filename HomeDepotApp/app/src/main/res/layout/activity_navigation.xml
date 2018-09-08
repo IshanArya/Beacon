@@ -46,4 +46,12 @@
         android:onClick="onButtonPressed"
         android:text="Right" />
 
+    <Button
+        android:id="@+id/returnHomeButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/left"
+        android:layout_centerHorizontal="true"
+        android:text="Home" />
+
 </RelativeLayout>
