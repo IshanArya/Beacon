@@ -1,10 +1,14 @@
 package com.hackathon.fellas.homedepotapp
 
+import android.util.Log
+import android.widget.TextView
 import java.lang.Math.exp
+import java.lang.Math.sqrt
 import java.util.*
+import kotlin.collections.ArrayList
 
-class NavigationMap {
-    class Signal(var strength: Short, var timestamp: Long, var signalFilt: Double, var inRangeCount: Int = 0)
+class NavigationMap(private val instructionsCallback: (String) -> Unit) {
+    class Signal(var strength: Int, var timestamp: Long, var signalFilt: Double, var inRangeCount: Int = 0)
 
     val nodes = arrayListOf(
             Node(0.0, 0.0, arrayListOf(Connection(1, 90.0))),
@@ -19,11 +23,44 @@ class NavigationMap {
     val queuedNavigationInstructions = LinkedList<String>()
 
     // The index of the next node in the path
-    var pathIdx = -1
+    var pathIdx = 0
 
-    var currentPath: Path? = null
+    var currentPath: Path? = Path(arrayListOf(0, 1, 2))
 
-    fun updateSignalReading(beaconId: Int, strength: Short) {
+    fun calculatePath(start: Int, end: Int): Path {
+        var prevTable = ArrayList<Int>(nodes.size)
+        val queue = PriorityQueue<Pair<Double, Pair<Int, Int>>>()
+        queue.add(Pair(0.0, Pair(start, 1)))
+        var numNodesTotal = 0
+        while (!queue.isEmpty()) {
+            val next = queue.remove()
+            val nextDist = next.first
+            val nextNode = next.second.first
+            val numNodes = next.second.second
+            if (nextNode == end) {
+                numNodesTotal = numNodes
+                break
+            }
+            for (conn in nodes[nextNode].connections) {
+                prevTable[conn.to] = nextNode
+                queue.add(Pair(
+                        nextDist + sqrt(
+                                Math.pow(nodes[conn.to].x - nodes[nextNode].x, 2.0)
+                                        + Math.pow(nodes[conn.to].y - nodes[nextNode].y, 2.0)
+                        ), Pair(conn.to, numNodes + 1)))
+            }
+        }
+        val result = Path(ArrayList(numNodesTotal))
+        var curr = end
+        for (i in 0 until numNodesTotal) {
+            result.nodes[numNodesTotal - i - 1] = curr
+            curr = prevTable[curr]
+        }
+        result.nodes[0] = curr
+        return result
+    }
+
+    fun updateSignalReading(beaconId: Int, strength: Int) {
         val timeConstant = 1.5
 
         if (beaconId < 0 || beaconId > nodes.size) {
@@ -34,22 +71,29 @@ class NavigationMap {
             val dt = (System.currentTimeMillis() - nodes[beaconId].lastSignal!!.timestamp) / 1000.0
             val k = exp(-dt / timeConstant)
             val signalFilt = k * nodes[beaconId].lastSignal!!.signalFilt + (1 - k) * strength
-            nodes[beaconId].lastSignal = Signal(strength, System.currentTimeMillis(), signalFilt, 0)
+            nodes[beaconId].lastSignal = Signal(strength, System.currentTimeMillis(), signalFilt, nodes[beaconId].lastSignal!!.inRangeCount)
         } else {
             nodes[beaconId].lastSignal = Signal(strength, System.currentTimeMillis(), strength.toDouble(), 0)
         }
 
         if (currentPath != null && pathIdx != -1) {
             val pathNext = currentPath!!.nodes[pathIdx]
-
             if (pathNext == beaconId) {
-                if (nodes[beaconId].lastSignal!!.signalFilt > -65) {
+                var isClosest = true
+                for (node in nodes) {
+                    if (node.lastSignal != null)
+                    if (node != nodes[beaconId] && nodes[beaconId].lastSignal!!.signalFilt - 5 < node.lastSignal!!.signalFilt && node.lastSignal!!.timestamp + 1000 > System.currentTimeMillis()) {
+                        isClosest = false
+                    }
+                }
+                if (isClosest) {
                     nodes[beaconId].lastSignal!!.inRangeCount++
                 } else {
                     nodes[beaconId].lastSignal!!.inRangeCount = 0
                 }
+                Log.v("BEACONPATH", "${nodes[beaconId].lastSignal!!.inRangeCount} counts for $beaconId")
 
-                if (nodes[beaconId].lastSignal!!.inRangeCount > 5) {
+                if (nodes[beaconId].lastSignal!!.inRangeCount > 10) {
                     nextNavigationInstruction()
                 }
             }
@@ -72,7 +116,7 @@ class NavigationMap {
         if (pathIdx <= 0) {
             return null
         }
-        for (connection in nodes[currentPath!!.nodes[pathIdx]].connections) {
+        for (connection in nodes[currentPath!!.nodes[pathIdx - 1]].connections) {
             if (connection.to == currentPath!!.nodes[pathIdx]) {
                 return connection
             }
@@ -80,23 +124,37 @@ class NavigationMap {
         return null
     }
 
+    fun startNavigation() {
+        pathIdx = 0
+        val distance = sqrt(Math.pow(nodes[pathIdx + 1].x - nodes[pathIdx].x, 2.0) + Math.pow(nodes[pathIdx + 1].y - nodes[pathIdx].y, 2.0))
+        queuedNavigationInstructions.addFirst("Proceed $distance to the first waypoint")
+        instructionsCallback("Proceed $distance to the first waypoint")
+    }
+
     fun nextNavigationInstruction() {
-        if (pathIdx < (currentPath?.nodes?.size ?: 0) - 1) {
+        if (pathIdx < currentPath!!.nodes.size - 1) {
             val toNext = getNextConnection()
             val fromLast = getPreviousConnection()
-            var angleDiff = (toNext?.angle ?: return) - (fromLast?.angle ?: return)
-            if (angleDiff > 360.0) {
+            var angleDiff = (toNext?.angle ?: return) - (fromLast?.angle ?: 0.0)
+            if (angleDiff > 180.0) {
                 angleDiff -= 360.0
-            } else if (angleDiff < -360.0) {
+            } else if (angleDiff < -180.0) {
                 angleDiff += 360.0
             }
-            val distance = Math.pow(nodes[pathIdx + 1].x - nodes[pathIdx].x, 2.0) + Math.pow(nodes[pathIdx + 1].y - nodes[pathIdx].y, 2.0)
-            val directionString = if (angleDiff > 0.0) "left" else "right"
-            queuedNavigationInstructions.addFirst("Turn $directionString and continue for $distance meters")
+            Log.v("ANGLEDIFF", angleDiff.toString())
+            val distance = sqrt(Math.pow(nodes[pathIdx + 1].x - nodes[pathIdx].x, 2.0) + Math.pow(nodes[pathIdx + 1].y - nodes[pathIdx].y, 2.0))
+            val directions = when {
+                angleDiff > 15 -> "Turn left and continue for $distance meters"
+                angleDiff < -15 -> "Turn right and continue for $distance meters"
+                else -> "Continue straight for $distance meters"
+            }
+            queuedNavigationInstructions.addFirst(directions)
+            instructionsCallback(directions)
             pathIdx++
         } else {
-            pathIdx = -1
+            pathIdx = 0
             queuedNavigationInstructions.addFirst("You have arrived at your destination.")
+            instructionsCallback("You have arrived at your destination")
             return
         }
     }
