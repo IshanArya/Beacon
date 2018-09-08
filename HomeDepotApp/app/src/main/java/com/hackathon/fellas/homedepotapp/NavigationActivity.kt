@@ -18,8 +18,6 @@ import kotlinx.android.synthetic.main.activity_navigation.returnHomeButton
 
 
 class NavigationActivity : AppCompatActivity() {
-
-    private var arrowImageView: ImageView? = null
     private var direction: Direction? = null
 
     enum class Direction {
@@ -36,8 +34,7 @@ class NavigationActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        arrowImageView = findViewById(R.id.arrowImageView)
-        arrowImageView?.setImageResource(R.drawable.arrow_forward)
+//        arrowImageView.setImageResource(R.drawable.arrow_forward)
 
         navigator.startNavigation()
 
@@ -56,13 +53,13 @@ class NavigationActivity : AppCompatActivity() {
     fun onButtonPressed(view: View) {
         var button = view as? Button
         val text = button?.getText().toString().toLowerCase()
-        if (text == "forward") {
-            arrowImageView?.setImageResource(R.drawable.arrow_forward)
-        } else if (text == "left") {
-            arrowImageView?.setImageResource(R.drawable.arrow_left)
-        } else if (text == "right") {
-            arrowImageView?.setImageResource(R.drawable.arrow_right)
-        }
+//        if (text == "forward") {
+//            arrowImageView?.setImageResource(R.drawable.arrow_forward)
+//        } else if (text == "left") {
+//            arrowImageView?.setImageResource(R.drawable.arrow_left)
+//        } else if (text == "right") {
+//            arrowImageView?.setImageResource(R.drawable.arrow_right)
+//        }
         Log.i("button text", button?.getText().toString())
     }
 

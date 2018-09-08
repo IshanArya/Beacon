@@ -16,13 +16,13 @@
         app:layout_constraintTop_toTopOf="parent"
         android:id="@+id/instructions" />
 
-    <ImageView
-        android:id="@+id/arrowImageView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/forward"
-        app:srcCompat="@drawable/arrow_forward" />
+    <!--<ImageView-->
+        <!--android:id="@+id/arrowImageView"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_alignParentStart="true"-->
+        <!--android:layout_below="@+id/forward"-->
+        <!--android:src="@drawable/arrow_forward" />-->
 
     <Button
         android:id="@+id/forward"
