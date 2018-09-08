@@ -12,7 +12,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
     }
-
+    
     fun startSearch(view: View) {
         val intent: Intent = Intent(this, SearchActivity::class.java)
         startActivity(intent)
