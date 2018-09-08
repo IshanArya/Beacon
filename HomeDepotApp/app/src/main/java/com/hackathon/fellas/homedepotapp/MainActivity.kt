@@ -28,5 +28,6 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
             Log.i("After", "After start")
         }
+
     }
 }
