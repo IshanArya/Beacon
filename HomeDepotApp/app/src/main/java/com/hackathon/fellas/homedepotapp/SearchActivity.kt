@@ -1,5 +1,6 @@
 package com.hackathon.fellas.homedepotapp
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.text.Editable
@@ -7,26 +8,27 @@ import android.text.TextWatcher
 import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.ListView
+import android.widget.Toast
 
 class SearchActivity : AppCompatActivity(), TextWatcher {
 
     lateinit var searchResults: ListView
     lateinit var searchBox: EditText
 
-    var tools: Array<String> = arrayOf(
-            "Fiberglass Claw Hammer",
-            "Steel Drilling Hammer",
-            "Mallet Hammer",
-            "Diamond Tip Magnet Screwdriver",
-            "Multi-bit Screwdriver",
-            "Phillips Head Screwdriver",
-            "Panel Board Nails",
-            "Sinker Nails",
-            "Smooth Shank Common Nails",
-            "Drywall Screws",
-            "Deck Screws"
+    val tools: Map<String, BluetoothNode> = mapOf<String, BluetoothNode>(
+            Pair("Fiberglass Claw Hammer", BluetoothNode.NODE1),
+            Pair("Steel Drilling Hammer", BluetoothNode.NODE1),
+            Pair("Mallet Hammer", BluetoothNode.NODE1),
+            Pair("Diamond Tip Magnet Screwdriver", BluetoothNode.NODE2),
+            Pair("Multi-bit Screwdriver", BluetoothNode.NODE2),
+            Pair("Phillips Head Screwdriver", BluetoothNode.NODE2),
+            Pair("Panel Board Nails", BluetoothNode.NODE3),
+            Pair("Sinker Nails", BluetoothNode.NODE3),
+            Pair("Smooth Shank Common Nails", BluetoothNode.NODE3),
+            Pair("Drywall Screws", BluetoothNode.NODE4),
+            Pair("Deck Screws", BluetoothNode.NODE4)
     )
-    var toolResults: MutableList<String> = mutableListOf()
+    val toolResults: MutableList<String> = mutableListOf()
     lateinit var toolAdapter: ArrayAdapter<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,6 +40,15 @@ class SearchActivity : AppCompatActivity(), TextWatcher {
         toolAdapter = ArrayAdapter(this, R.layout.search_result, R.id.tool_name, toolResults)
 
         searchResults.adapter = toolAdapter
+
+        searchResults.setOnItemClickListener{parent, view, position, id ->
+            var itemKey: String = searchResults.getItemAtPosition(position) as String
+//            Toast.makeText(this, tools[itemKey]?.item, Toast.LENGTH_SHORT).show()
+            val intent: Intent = Intent(this, NavigationActivity::class.java).apply {
+                putExtra("Node", tools[itemKey])
+            }
+            startActivity(intent)
+        }
     }
 
     override fun afterTextChanged(s: Editable?) {
@@ -48,12 +59,11 @@ class SearchActivity : AppCompatActivity(), TextWatcher {
     }
 
     override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-        //Toast.makeText(this, s, Toast.LENGTH_SHORT).show()
         if(s != null) {
             toolResults.clear()
-            for(tool in tools) {
-                if(tool.contains(s, true)) {
-                    toolResults.add(tool)
+            for((key, value) in tools) {
+                if(key.contains(s, true)) {
+                    toolResults.add(key)
                 }
             }
         }
