@@ -17,12 +17,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         listButton.setOnClickListener {
-            val intent = Intent(this, SearchActivity::class.java)
+            val intent = Intent(this, ListActivity::class.java)
             startActivity(intent)
         }
 
-        directionButton.setOnClickListener {
-            val intent = Intent(this, NavigationActivity::class.java)
+        searchButton.setOnClickListener {
+            val intent = Intent(this, SearchActivity::class.java)
             startActivity(intent)
         }
 

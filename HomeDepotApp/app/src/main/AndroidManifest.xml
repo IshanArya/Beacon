@@ -17,7 +17,9 @@
             </intent-filter>
         </activity>
         <activity android:name=".HelpActivity" />
-        <activity android:name=".SearchActivity" />
+        <activity android:name=".SearchActivity"
+            android:parentActivityName=".MainActivity"
+            />
         <activity android:name=".NavigationActivity" />
         <activity android:name=".ListActivity" />
     </application>
