@@ -21,13 +21,13 @@
             android:paddingLeft="10dp"
             android:paddingRight="10dp" />
 
-        <Button
-            android:layout_weight="0"
-            android:layout_width="80dp"
-            android:layout_height="wrap_content"
-            android:background="@color/colorTransparent"
-            android:textSize="30sp"
-            android:text="⇒" />
+        <!--<Button-->
+            <!--android:layout_weight="0"-->
+            <!--android:layout_width="80dp"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:background="@color/colorTransparent"-->
+            <!--android:textSize="30sp"-->
+            <!--android:text="⇒" />-->
     </LinearLayout>
     <ListView
         android:layout_width="match_parent"
