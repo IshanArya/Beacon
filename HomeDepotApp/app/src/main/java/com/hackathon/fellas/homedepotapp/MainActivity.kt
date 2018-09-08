@@ -12,17 +12,17 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         helpButton.setOnClickListener {
-            val intent = Intent(this, Help::class.java)
+            val intent = Intent(this, HelpActivity::class.java)
             startActivity(intent)
         }
 
         listButton.setOnClickListener {
-            val intent = Intent(this, Search::class.java)
+            val intent = Intent(this, SearchActivity::class.java)
             startActivity(intent)
         }
 
         directionButton.setOnClickListener {
-            val intent = Intent(this, Navigation::class.java)
+            val intent = Intent(this, NavigationActivity::class.java)
             startActivity(intent)
         }
     }
