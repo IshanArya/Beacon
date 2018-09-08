@@ -12,8 +12,12 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
     }
-    
-    fun startSearch(view: View) {
+
+    fun goToMyList(view: View) {
+        val intent: Intent = Intent(this, MyListActivity::class.java)
+        startActivity(intent)
+    }
+    fun goToSearch(view: View) {
         val intent: Intent = Intent(this, SearchActivity::class.java)
         startActivity(intent)
     }
