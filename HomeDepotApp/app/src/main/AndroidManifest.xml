@@ -43,7 +43,8 @@
         </activity>
         <activity
             android:name=".NavigationActivity"
-            android:parentActivityName=".SearchActivity">
+            android:parentActivityName=".SearchActivity"
+            android:screenOrientation="portrait">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.hackathon.fellas.homedepotapp.MainActivity" />

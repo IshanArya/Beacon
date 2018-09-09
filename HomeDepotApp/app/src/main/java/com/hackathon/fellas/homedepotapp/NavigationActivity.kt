@@ -32,6 +32,7 @@ class NavigationActivity : AppCompatActivity(), SensorEventListener, TextToSpeec
     lateinit var textToSpeech: TextToSpeech
     private lateinit var bluetoothAdapter: BluetoothAdapter
     private var navigator = NavigationMap { inst, degrees ->
+        Log.v("CALLBACK INSTRUCTION", "Called with instructions -> $inst")
         instructions.text = inst
         if (degrees != null) {
             if (abs(degrees) <= 15) {
@@ -50,7 +51,6 @@ class NavigationActivity : AppCompatActivity(), SensorEventListener, TextToSpeec
     }
 
 
-
     private val sensorManager: SensorManager by lazy { (getSystemService(Context.SENSOR_SERVICE) as SensorManager?)!! }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -58,6 +58,19 @@ class NavigationActivity : AppCompatActivity(), SensorEventListener, TextToSpeec
         super.onCreate(savedInstanceState)
         textToSpeech = TextToSpeech(this, this)
         setContentView(R.layout.activity_navigation)
+
+        val bluetoothNode: BluetoothNode = intent.getSerializableExtra(SharedData.CHOSEN_NODE) as BluetoothNode
+
+        var beaconId = when (bluetoothNode) {
+            BluetoothNode.NODE1 -> 0
+            BluetoothNode.NODE2 -> 1
+            BluetoothNode.NODE3 -> 2
+            else -> {
+                0
+            }
+        }
+
+        navigator.setGoal(beaconId)
 
         textToSpeech.setLanguage(Locale.CHINESE)
 
@@ -74,8 +87,15 @@ class NavigationActivity : AppCompatActivity(), SensorEventListener, TextToSpeec
         } else {
             Log.e("PERMS", "Permission not granted for bluetooth")
         }
+
+
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        textToSpeech.shutdown()
+        sensorManager.unregisterListener(this)
+    }
 
 
     override fun onSensorChanged(event: SensorEvent?) {
