@@ -8,24 +8,26 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 class NavigationMap(private val instructionsCallback: (String, Double?) -> Unit) {
-    class Signal(var strength: Int, var timestamp: Long, var signalFilt: Double, var inRangeCount: Int = 0)
-
     val nodes = arrayListOf(
-            Node(0.0, 0.0, arrayListOf(Connection(1, 90.0))),
-            Node(0.0, 3.0, arrayListOf(Connection(0, -90.0), Connection(2, 90.0))),
-            Node(0.0, 6.0, arrayListOf(Connection(1, -90.0)))
+            Node(0.0, 0.0, arrayListOf(Connection(1, 00.0))),
+            Node(0.0, 3.0, arrayListOf(Connection(0, 0.0), Connection(2, -90.0))),
+            Node(3.0, 3.0, arrayListOf(Connection(1, 90.0)))
     )
 
+    class Signal(var strength: Int, var timestamp: Long, var signalFilt: Double, var inRangeCount: Int = 0)
     class Node(val x: Double, val y: Double, val connections: ArrayList<Connection>, var lastSignal: Signal? = null)
     class Connection(val to: Int, val angle: Double)
     class Path(var nodes: ArrayList<Int>)
 
-    val queuedNavigationInstructions = LinkedList<String>()
+    var goalBeacon: Int = 0
+    var currentBeacon: Int? = null
+
+    var isDone = false
 
     // The index of the next node in the path
-    var pathIdx = 0
+    var pathIdx = -1
 
-    var currentPath: Path? = Path(arrayListOf(0, 1, 2))
+    var currentPath: Path? = null
 
     fun calculatePath(start: Int, end: Int): Path {
         var prevTable = ArrayList<Int>(nodes.size)
@@ -60,8 +62,32 @@ class NavigationMap(private val instructionsCallback: (String, Double?) -> Unit)
         return result
     }
 
+    fun goToBeacon(beaconId: Int) {
+        currentPath = Path(arrayListOf())
+        if (currentBeacon != null) {
+            if (currentBeacon == beaconId) {
+                instructionsCallback("You are already at the destination", null)
+                isDone = true
+                pathIdx = -1
+            } else if (beaconId > currentBeacon!!) {
+                currentPath!!.nodes.addAll(currentBeacon!!..beaconId)
+                pathIdx = 0
+            } else {
+                currentPath!!.nodes.addAll(currentBeacon!! downTo beaconId)
+                pathIdx = 0
+            }
+        }
+    }
+
+    fun setGoal(beaconId: Int) {
+        goalBeacon = beaconId
+    }
+
     fun updateSignalReading(beaconId: Int, strength: Int) {
-        val timeConstant = 1.5
+        if (isDone) {
+            return
+        }
+        val timeConstant = 0.5
 
         if (beaconId < 0 || beaconId > nodes.size) {
             throw IllegalArgumentException("Beacon $beaconId does not exist!")
@@ -75,25 +101,32 @@ class NavigationMap(private val instructionsCallback: (String, Double?) -> Unit)
         } else {
             nodes[beaconId].lastSignal = Signal(strength, System.currentTimeMillis(), strength.toDouble(), 0)
         }
+        var isClosest = true
 
+        for (node in nodes) {
+            if (node.lastSignal != null)
+                if (node != nodes[beaconId] &&
+                        nodes[beaconId].lastSignal!!.signalFilt - 5 < node.lastSignal!!.signalFilt
+                        && node.lastSignal!!.timestamp + 1000 > System.currentTimeMillis()) {
+                    isClosest = false
+                }
+        }
+        if (isClosest) {
+            nodes[beaconId].lastSignal!!.inRangeCount++
+        } else {
+            nodes[beaconId].lastSignal!!.inRangeCount = 0
+        }
+        if (currentBeacon == null && nodes[beaconId].lastSignal!!.inRangeCount > 5) {
+            currentBeacon = beaconId
+            goToBeacon(goalBeacon)
+            Log.v("DARN", "Beacon $currentBeacon -> $goalBeacon")
+        }
         if (currentPath != null && pathIdx != -1) {
-            val pathNext = currentPath!!.nodes[pathIdx]
-            if (pathNext == beaconId) {
-                var isClosest = true
-                for (node in nodes) {
-                    if (node.lastSignal != null)
-                    if (node != nodes[beaconId] && nodes[beaconId].lastSignal!!.signalFilt - 5 < node.lastSignal!!.signalFilt && node.lastSignal!!.timestamp + 1000 > System.currentTimeMillis()) {
-                        isClosest = false
-                    }
-                }
-                if (isClosest) {
-                    nodes[beaconId].lastSignal!!.inRangeCount++
-                } else {
-                    nodes[beaconId].lastSignal!!.inRangeCount = 0
-                }
+            val nodeNext = currentPath!!.nodes[pathIdx]
+            if (nodeNext == beaconId) {
                 Log.v("BEACONPATH", "${nodes[beaconId].lastSignal!!.inRangeCount} counts for $beaconId")
 
-                if (nodes[beaconId].lastSignal!!.inRangeCount > 10) {
+                if (nodes[beaconId].lastSignal!!.inRangeCount == 10) {
                     nextNavigationInstruction()
                 }
             }
@@ -101,7 +134,7 @@ class NavigationMap(private val instructionsCallback: (String, Double?) -> Unit)
     }
 
     fun getNextConnection(): Connection? {
-        if (pathIdx >= currentPath!!.nodes.size - 1) {
+        if (pathIdx >= currentPath!!.nodes.size - 1 || currentPath == null || pathIdx < 0) {
             return null
         }
         for (connection in nodes[currentPath!!.nodes[pathIdx]].connections) {
@@ -112,35 +145,23 @@ class NavigationMap(private val instructionsCallback: (String, Double?) -> Unit)
         return null
     }
 
-    fun getPreviousConnection(): Connection? {
-        if (pathIdx <= 0) {
-            return null
-        }
-        for (connection in nodes[currentPath!!.nodes[pathIdx - 1]].connections) {
-            if (connection.to == currentPath!!.nodes[pathIdx]) {
-                return connection
-            }
-        }
-        return null
-    }
-
     fun startNavigation() {
         pathIdx = 0
-        val distance = sqrt(Math.pow(nodes[pathIdx + 1].x - nodes[pathIdx].x, 2.0) + Math.pow(nodes[pathIdx + 1].y - nodes[pathIdx].y, 2.0))
-        queuedNavigationInstructions.addFirst("Find the first waypoint")
         instructionsCallback("Find the first waypoint", null)
     }
 
-    fun nextNavigationInstruction() {
+    private var currentAngle: Double = 0.0
+
+    private fun nextNavigationInstruction() {
         if (pathIdx < currentPath!!.nodes.size - 1) {
             val toNext = getNextConnection()
-            val fromLast = getPreviousConnection()
-            var angleDiff = (toNext?.angle ?: return) - (fromLast?.angle ?: 0.0)
+            var angleDiff = (toNext?.angle ?: return) - currentAngle
             if (angleDiff > 180.0) {
                 angleDiff -= 360.0
             } else if (angleDiff < -180.0) {
                 angleDiff += 360.0
             }
+            currentAngle = toNext.angle
             Log.v("ANGLEDIFF", angleDiff.toString())
             val distance = sqrt(Math.pow(nodes[pathIdx + 1].x - nodes[pathIdx].x, 2.0) + Math.pow(nodes[pathIdx + 1].y - nodes[pathIdx].y, 2.0))
             val directions = when {
@@ -148,13 +169,11 @@ class NavigationMap(private val instructionsCallback: (String, Double?) -> Unit)
                 angleDiff < -15 -> "Turn right and continue for $distance meters"
                 else -> "Continue straight for $distance meters"
             }
-            queuedNavigationInstructions.addFirst(directions)
             instructionsCallback(directions, angleDiff)
             pathIdx++
         } else {
-            pathIdx = 0
-            queuedNavigationInstructions.addFirst("You have arrived at your destination.")
             instructionsCallback("You have arrived at your destination", null)
+            isDone = true
             return
         }
     }

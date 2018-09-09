@@ -15,6 +15,7 @@ class SharedData {
                 Pair("Drywall Screws", BluetoothNode.NODE4),
                 Pair("Deck Screws", BluetoothNode.NODE4)
         )
+        val CHOSEN_NODE = "com.hackathon.fellas.CHOSEN_NODE"
     }
 
 }

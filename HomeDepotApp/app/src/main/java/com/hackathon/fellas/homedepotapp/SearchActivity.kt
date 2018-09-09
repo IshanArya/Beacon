@@ -32,7 +32,7 @@ class SearchActivity : AppCompatActivity(), TextWatcher {
             var itemKey: String = searchResults.getItemAtPosition(position) as String
 //            Toast.makeText(this, SharedData.tools[itemKey]?.item, Toast.LENGTH_SHORT).show()
             val intent: Intent = Intent(this, NavigationActivity::class.java).apply {
-                putExtra("Node", SharedData.tools[itemKey])
+                putExtra(SharedData.CHOSEN_NODE, SharedData.tools[itemKey])
             }
             startActivity(intent)
         }
