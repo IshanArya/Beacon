@@ -20,8 +20,11 @@ import java.util.*
 
 
 class NavigationActivity : AppCompatActivity(), SensorEventListener, TextToSpeech.OnInitListener {
-    enum class Direction {
-        RIGHT, LEFT, FORWARD
+    enum class Direction(val arrowString: String) {
+        FORWARD("\u2b06\ufe0e"),
+        DOWN("\u2b07\ufe0e"),
+        LEFT("\u2b05\ufe0e"),
+        RIGHT("\u27a1\ufe0e")
     }
 
 
@@ -36,13 +39,15 @@ class NavigationActivity : AppCompatActivity(), SensorEventListener, TextToSpeec
         instructions.text = inst
         if (degrees != null) {
             if (abs(degrees) <= 15) {
-                arrowView.text = "\u2b06"
+                arrowView.text = Direction.FORWARD.arrowString
+            } else if (abs(degrees) > 165) {
+                arrowView.text = Direction.DOWN.arrowString
             } else if (degrees > 0) {
-                arrowView.text = "\u2b05"
+                arrowView.text = Direction.LEFT.arrowString
                 stepsAtChange = steps
                 direction = Direction.LEFT
             } else if (degrees < 0) {
-                arrowView.text = "\u27a1"
+                arrowView.text = Direction.RIGHT.arrowString
                 stepsAtChange = steps
                 direction = Direction.RIGHT
             }
@@ -76,7 +81,7 @@ class NavigationActivity : AppCompatActivity(), SensorEventListener, TextToSpeec
 
         navigator.startNavigation()
         val stepCounter = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-        sensorManager.registerListener(this, stepCounter, SensorManager.SENSOR_DELAY_NORMAL)
+        sensorManager.registerListener(this, stepCounter, SensorManager.SENSOR_DELAY_GAME)
 
         if (checkSelfPermission(Manifest.permission.BLUETOOTH)
                 == PackageManager.PERMISSION_GRANTED
@@ -105,7 +110,7 @@ class NavigationActivity : AppCompatActivity(), SensorEventListener, TextToSpeec
                 val stepsChange = steps - stepsAtChange
                 if (stepsChange > 2) {
                     direction = Direction.FORWARD
-                    arrowView.text = "\u2b06"
+                    arrowView.text = "\u2b06\ufe0e"
                 }
             }
         }

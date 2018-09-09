@@ -9,13 +9,13 @@ import kotlin.collections.ArrayList
 
 class NavigationMap(private val instructionsCallback: (String, Double?) -> Unit) {
     val nodes = arrayListOf(
-            Node(0.0, 0.0, arrayListOf(Connection(1, 00.0))),
-            Node(0.0, 3.0, arrayListOf(Connection(0, 0.0), Connection(2, -90.0))),
-            Node(3.0, 3.0, arrayListOf(Connection(1, 90.0)))
+            Node(0.0, 0.0, 90.0, arrayListOf(Connection(1, 0.0))),
+            Node(0.0, 3.0, 0.0, arrayListOf(Connection(0, -180.0), Connection(2, -90.0))),
+            Node(3.0, 3.0, 0.0, arrayListOf(Connection(1, 90.0)))
     )
 
     class Signal(var strength: Int, var timestamp: Long, var signalFilt: Double, var inRangeCount: Int = 0)
-    class Node(val x: Double, val y: Double, val connections: ArrayList<Connection>, var lastSignal: Signal? = null)
+    class Node(val x: Double, val y: Double, val initAngle: Double, val connections: ArrayList<Connection>, var lastSignal: Signal? = null)
     class Connection(val to: Int, val angle: Double)
     class Path(var nodes: ArrayList<Int>)
 
@@ -76,6 +76,7 @@ class NavigationMap(private val instructionsCallback: (String, Double?) -> Unit)
                 currentPath!!.nodes.addAll(currentBeacon!! downTo beaconId)
                 pathIdx = 0
             }
+            currentAngle = nodes[currentBeacon!!].initAngle
         }
     }
 
@@ -83,9 +84,15 @@ class NavigationMap(private val instructionsCallback: (String, Double?) -> Unit)
         goalBeacon = beaconId
     }
 
-    fun updateSignalReading(beaconId: Int, strength: Int) {
+    fun updateSignalReading(beaconId: Int, uncalibratedStrength: Int) {
         if (isDone) {
             return
+        }
+
+        val strength = uncalibratedStrength + when (beaconId) {
+            0 -> 42
+            1 -> 39
+            else -> 45
         }
         val timeConstant = 0.5
 
@@ -106,7 +113,7 @@ class NavigationMap(private val instructionsCallback: (String, Double?) -> Unit)
         for (node in nodes) {
             if (node.lastSignal != null)
                 if (node != nodes[beaconId] &&
-                        nodes[beaconId].lastSignal!!.signalFilt - 5 < node.lastSignal!!.signalFilt
+                        nodes[beaconId].lastSignal!!.signalFilt - 2 < node.lastSignal!!.signalFilt
                         && node.lastSignal!!.timestamp + 1000 > System.currentTimeMillis()) {
                     isClosest = false
                 }
@@ -162,17 +169,39 @@ class NavigationMap(private val instructionsCallback: (String, Double?) -> Unit)
                 angleDiff += 360.0
             }
             currentAngle = toNext.angle
-            Log.v("ANGLEDIFF", angleDiff.toString())
             val distance = sqrt(Math.pow(nodes[pathIdx + 1].x - nodes[pathIdx].x, 2.0) + Math.pow(nodes[pathIdx + 1].y - nodes[pathIdx].y, 2.0))
-            val directions = when {
-                angleDiff > 15 -> "Turn left and continue for $distance meters"
-                angleDiff < -15 -> "Turn right and continue for $distance meters"
-                else -> "Continue straight for $distance meters"
+
+            if (pathIdx == 0) {
+                val directions = "Face the product, " + when {
+                    angleDiff > 165 || angleDiff < -165 -> "turn around and "
+                    angleDiff > 15 -> "turn left and "
+                    angleDiff < -15 -> "turn right and "
+                    else -> "and "
+                } + "continue straight for ${Math.round(distance)} meters"
+                instructionsCallback(directions, angleDiff)
+            } else {
+                Log.v("ANGLEDIFF", angleDiff.toString())
+                val directions = when {
+                    angleDiff > 15 -> "Turn left and continue for ${Math.round(distance)} meters"
+                    angleDiff < -15 -> "Turn right and continue for ${Math.round(distance)} meters"
+                    else -> "Continue straight for ${Math.round(distance)} meters"
+                }
+                instructionsCallback(directions, angleDiff)
             }
-            instructionsCallback(directions, angleDiff)
             pathIdx++
         } else {
-            instructionsCallback("You have arrived at your destination", null)
+            var angleDiff = nodes[currentPath!!.nodes[pathIdx]].initAngle - currentAngle
+            if (angleDiff > 180.0) {
+                angleDiff -= 360.0
+            } else if (angleDiff < -180.0) {
+                angleDiff += 360.0
+            }
+            val instructions = "You have arrived at your destination. The product is " + when {
+                angleDiff > 15.0 -> "on your left."
+                angleDiff < -15.0 -> "on your right."
+                else -> "in front of you."
+            }
+            instructionsCallback(instructions, angleDiff)
             isDone = true
             return
         }
