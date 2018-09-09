@@ -9,13 +9,13 @@ import kotlin.collections.ArrayList
 
 class NavigationMap(private val instructionsCallback: (String, Double?) -> Unit) {
     val nodes = arrayListOf(
-            Node(0.0, 0.0, 90.0, arrayListOf(Connection(1, 0.0))),
-            Node(0.0, 3.0, 0.0, arrayListOf(Connection(0, -180.0), Connection(2, -90.0))),
-            Node(3.0, 3.0, 0.0, arrayListOf(Connection(1, 90.0)))
+            Node(0.0, 0.0, 90.0, arrayListOf(Connection(1, 0.0)), "hammer"),
+            Node(0.0, 3.0, 0.0, arrayListOf(Connection(0, -180.0), Connection(2, -90.0)), "screwdriver"),
+            Node(3.0, 3.0, 0.0, arrayListOf(Connection(1, 90.0)), "nail")
     )
 
     class Signal(var strength: Int, var timestamp: Long, var signalFilt: Double, var inRangeCount: Int = 0)
-    class Node(val x: Double, val y: Double, val initAngle: Double, val connections: ArrayList<Connection>, var lastSignal: Signal? = null)
+    class Node(val x: Double, val y: Double, val initAngle: Double, val connections: ArrayList<Connection>, val name: String, var lastSignal: Signal? = null)
     class Connection(val to: Int, val angle: Double)
     class Path(var nodes: ArrayList<Int>)
 
@@ -90,8 +90,8 @@ class NavigationMap(private val instructionsCallback: (String, Double?) -> Unit)
         }
 
         val strength = uncalibratedStrength + when (beaconId) {
-            0 -> 42
-            1 -> 39
+            0 -> 48
+            1 -> 35
             else -> 45
         }
         val timeConstant = 0.5
@@ -172,7 +172,7 @@ class NavigationMap(private val instructionsCallback: (String, Double?) -> Unit)
             val distance = sqrt(Math.pow(nodes[pathIdx + 1].x - nodes[pathIdx].x, 2.0) + Math.pow(nodes[pathIdx + 1].y - nodes[pathIdx].y, 2.0))
 
             if (pathIdx == 0) {
-                val directions = "Face the product, " + when {
+                val directions = "Face the  ${nodes[currentPath!!.nodes[pathIdx]].name}s, " + when {
                     angleDiff > 165 || angleDiff < -165 -> "turn around and "
                     angleDiff > 15 -> "turn left and "
                     angleDiff < -15 -> "turn right and "
@@ -196,7 +196,7 @@ class NavigationMap(private val instructionsCallback: (String, Double?) -> Unit)
             } else if (angleDiff < -180.0) {
                 angleDiff += 360.0
             }
-            val instructions = "You have arrived at your destination. The product is " + when {
+            val instructions = "You have arrived at your destination. The ${nodes[currentPath!!.nodes[pathIdx]].name}s are " + when {
                 angleDiff > 15.0 -> "on your left."
                 angleDiff < -15.0 -> "on your right."
                 else -> "in front of you."
