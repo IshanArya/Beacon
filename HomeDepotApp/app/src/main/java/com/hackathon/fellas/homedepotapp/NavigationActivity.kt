@@ -20,35 +20,36 @@ import java.util.*
 
 
 class NavigationActivity : AppCompatActivity(), SensorEventListener, TextToSpeech.OnInitListener {
-    override fun onInit(p0: Int) {}
-
-    var stepsAtChange = 0
-    var steps = 0
-
-    lateinit var textToSpeech: TextToSpeech
-
-    override fun onSensorChanged(event: SensorEvent?) {
-        if (event != null) {
-            steps = event.values[0].toInt()
-            if (direction != Direction.FORWARD) {
-                val stepsChange = steps - stepsAtChange
-                if (stepsChange > 2) {
-                    direction = Direction.FORWARD
-                    arrowImageView?.setImageResource(R.drawable.arrow_forward)
-                }
-            }
-        }
-    }
-
-    override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
-        // Empty
-    }
-
-    private var direction: Direction? = null
-
     enum class Direction {
         RIGHT, LEFT, FORWARD
     }
+
+
+    var stepsAtChange = 0
+    var steps = 0
+    private var direction: Direction = Direction.FORWARD
+
+    lateinit var textToSpeech: TextToSpeech
+    private lateinit var bluetoothAdapter: BluetoothAdapter
+    private var navigator = NavigationMap { inst, degrees ->
+        instructions.text = inst
+        if (degrees != null) {
+            if (abs(degrees) <= 15) {
+                arrowView.text = "\u2b06"
+            } else if (degrees > 0) {
+                arrowView.text = "\u2b05"
+                stepsAtChange = steps
+                direction = Direction.LEFT
+            } else if (degrees < 0) {
+                arrowView.text = "\u27a1"
+                stepsAtChange = steps
+                direction = Direction.RIGHT
+            }
+        }
+        textToSpeech.speak(inst, TextToSpeech.QUEUE_ADD, null)
+    }
+
+
 
     private val sensorManager: SensorManager by lazy { (getSystemService(Context.SENSOR_SERVICE) as SensorManager?)!! }
 
@@ -58,7 +59,7 @@ class NavigationActivity : AppCompatActivity(), SensorEventListener, TextToSpeec
         textToSpeech = TextToSpeech(this, this)
         setContentView(R.layout.activity_navigation)
 
-        textToSpeech.setLanguage(Locale.CHINA)
+        textToSpeech.setLanguage(Locale.CHINESE)
 
         navigator.startNavigation()
         val stepCounter = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
@@ -75,24 +76,19 @@ class NavigationActivity : AppCompatActivity(), SensorEventListener, TextToSpeec
         }
     }
 
-    private lateinit var bluetoothAdapter: BluetoothAdapter
 
-    private var navigator = NavigationMap { inst, degrees ->
-        instructions.text = inst
-        if (degrees != null) {
-            if (abs(degrees) <= 15) {
-                arrowImageView?.setImageResource(R.drawable.arrow_forward)
-            } else if (degrees > 0) {
-                arrowImageView?.setImageResource(R.drawable.arrow_left)
-                stepsAtChange = steps
-                direction = Direction.LEFT
-            } else if (degrees < 0) {
-                arrowImageView?.setImageResource(R.drawable.arrow_right)
-                stepsAtChange = steps
-                direction = Direction.RIGHT
+
+    override fun onSensorChanged(event: SensorEvent?) {
+        if (event != null) {
+            steps = event.values[0].toInt()
+            if (direction != Direction.FORWARD) {
+                val stepsChange = steps - stepsAtChange
+                if (stepsChange > 2) {
+                    direction = Direction.FORWARD
+                    arrowView.text = "\u2b06"
+                }
             }
         }
-        textToSpeech.speak(inst, TextToSpeech.QUEUE_ADD, null)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -108,5 +104,8 @@ class NavigationActivity : AppCompatActivity(), SensorEventListener, TextToSpeec
             }
         }
     }
+
+    override fun onInit(p0: Int) {}
+    override fun onAccuracyChanged(p0: Sensor?, p1: Int) {}
 
 }

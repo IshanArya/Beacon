@@ -6,19 +6,26 @@
     android:layout_height="wrap_content"
     tools:context=".NavigationActivity">
 
-    <ImageView
-        android:id="@+id/arrowImageView"
-        android:layout_width="wrap_content"
-        android:layout_height="368dp"
-        android:layout_centerInParent="true"
-        android:contentDescription="@string/imageContent"
-        app:srcCompat="@drawable/arrow_forward" />
+    <!--<ImageView-->
+        <!--android:id="@+id/arrowImageView"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="264dp"-->
+        <!--android:layout_centerInParent="true"-->
+        <!--android:contentDescription="@string/imageContent"-->
+        <!--android:src="@drawable/arrow_forward" />-->
+    <TextView
+        android:id="@+id/arrowView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="\u2b06"
+        android:textSize="200sp"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Hello World!"
-        android:layout_below="@id/arrowImageView"
+        android:layout_below="@id/arrowView"
         android:layout_centerHorizontal="true"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:id="@+id/instructions" />
