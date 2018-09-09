@@ -2,8 +2,9 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="#FF6600"
     tools:context=".NavigationActivity">
 
     <ImageView
@@ -15,11 +16,11 @@
         app:srcCompat="@drawable/arrow_forward" />
 
     <TextView
+        android:id="@+id/instructions"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
         android:layout_below="@id/arrowImageView"
         android:layout_centerHorizontal="true"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:id="@+id/instructions" />
+        android:text="Hello World!"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 </RelativeLayout>
