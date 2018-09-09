@@ -7,29 +7,38 @@
 
     <Button
         android:id="@+id/goToHelp"
-        android:onClick="goToHelp"
         android:layout_width="match_parent"
         android:layout_height="170dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:text="Help menu" />
+        android:background="#FF6600"
+        android:fontFamily="sans-serif"
+        android:onClick="goToHelp"
+        android:text="Help"
+        android:textColor="@android:color/background_light"
+        android:textSize="45sp" />
 
     <Button
         android:id="@+id/goToList"
-        android:onClick="goToMyList"
         android:layout_width="match_parent"
         android:layout_height="170dp"
         android:layout_alignParentStart="true"
         android:layout_below="@id/goToHelp"
-        android:text="List menu" />
+        android:background="#F3B700"
+        android:onClick="goToMyList"
+        android:text="My Items"
+        android:textColor="@android:color/background_light"
+        android:textSize="45sp" />
 
     <Button
         android:id="@+id/goToSearch"
         android:layout_width="match_parent"
         android:layout_height="170dp"
         android:layout_alignParentBottom="true"
-        android:onClick="goToSearch"
         android:layout_alignParentStart="true"
-        android:layout_below="@id/goToList"
-        android:text="Search Menu" />
+        android:background="#32021F"
+        android:onClick="goToSearch"
+        android:text="Search"
+        android:textColor="@android:color/background_light"
+        android:textSize="45sp" />
 </RelativeLayout>
